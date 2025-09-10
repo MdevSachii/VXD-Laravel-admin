@@ -1,9 +1,9 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
-import Index from '../components/Tours/Index.vue'
+import Posts from '../pages/Posts.vue'
 
 const routes = [
-  { path: '/', component: Index },
+  { path: '/', component: Posts },
 ]
 
 export default createRouter({
