@@ -18,7 +18,7 @@ class WPService implements IWP
         $cfg       = Config::get('services.wordpress');
         $this->base = rtrim($cfg['api_base_url'], '/') . '/';
         $this->http = new Client(['base_uri' => $this->base, 'http_errors' => false, 'timeout' => 20]);
-        $this->site = $cfg['site_id'] ?? $cfg['site'] ?? (session('wp_site.ID') ?? session('wp_site.URL') ?? '');
+        $this->site =  $cfg['site'] ?? ( session('wp_site.URL') ?? '');
     }
 
     private function authHeaders(): array
@@ -35,7 +35,6 @@ class WPService implements IWP
 
     public function listPosts(array $params = []): array
     {
-        // Typical params: number, status, page
         $query = array_merge([
             'number' => 50,
             'status' => 'publish,draft',
@@ -55,7 +54,6 @@ class WPService implements IWP
 
     public function createPost(array $data): array
     {
-        // WP.com REST: POST sites/{site}/posts/new
         $path = 'rest/v1.1/sites/' . rawurlencode($this->site) . '/posts/new';
         $res  = $this->http->post($path, ['headers' => $this->authHeaders(), 'form_params' => $data]);
         return json_decode((string)$res->getBody(), true) ?: [];
@@ -63,7 +61,6 @@ class WPService implements IWP
 
     public function updatePost(int|string $postId, array $data): array
     {
-        // WP.com REST: POST sites/{site}/posts/{postId}
         $path = 'rest/v1.1/sites/' . rawurlencode($this->site) . '/posts/' . rawurlencode($postId);
         $res  = $this->http->post($path, ['headers' => $this->authHeaders(), 'form_params' => $data]);
         return json_decode((string)$res->getBody(), true) ?: [];
@@ -71,7 +68,6 @@ class WPService implements IWP
 
     public function deletePost(int|string $postId): array
     {
-        // WP.com REST: POST sites/{site}/posts/{postId}/delete
         $path = 'rest/v1.1/sites/' . rawurlencode($this->site) . '/posts/' . rawurlencode($postId) . '/delete';
         $res  = $this->http->post($path, ['headers' => $this->authHeaders()]);
         return json_decode((string)$res->getBody(), true) ?: [];
