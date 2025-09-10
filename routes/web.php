@@ -11,6 +11,11 @@ Route::get('/', function () {
     return view('welcome');
 })->middleware('wp.auth');
 
+Route::middleware('web')->group(function () {
+    Route::get('/auth/wp/token', [WPAuthController::class, 'token']);
+    Route::get('/auth/wp/me', [WPAuthController::class, 'me']);
+});
+
 Route::middleware(['web','wp.auth'])
     ->prefix('api')->group(function () {
         Route::get('/posts', [WPPostController::class, 'index']);

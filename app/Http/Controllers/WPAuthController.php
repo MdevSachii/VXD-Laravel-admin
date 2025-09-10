@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use GuzzleHttp\Client;
+use App\Services\WordPressTokenStore;
 
 class WPAuthController extends Controller
 {
@@ -41,7 +42,7 @@ class WPAuthController extends Controller
         return redirect()->away($url);
     }
 
-    public function callback(Request $request)
+    public function callback(Request $request, WordPressTokenStore $store)
     {
         $cfg = Config::get('services.wordpress');
 
@@ -87,6 +88,8 @@ class WPAuthController extends Controller
         }
 
         $accessToken = $tokenBody['access_token'];
+        $store->saveFromTokenResponse($tokenBody);
+
 
         if (!empty($cfg['require_admin'])) {
             $siteIdOrDomain = $request->session()->pull('wp_oauth_blog')
@@ -121,5 +124,33 @@ class WPAuthController extends Controller
         ]);
 
         return redirect('/');
+    }
+
+    public function token(WordPressTokenStore $store)
+    {
+        $bundle = $store->getTokens();
+        if (!$bundle) {
+            return response()->json(['message' => 'No token stored. Please sign in.'], 404);
+        }
+
+        $fresh = $store->getAccessToken();
+        return response()->json([
+            'access_token' => $fresh,
+            'token_type'   => $bundle['token_type'] ?? 'bearer',
+            'scope'        => $bundle['scope'] ?? null,
+            'expires_at'   => $bundle['expires_at'] ?? null,
+            'obtained_at'  => $bundle['obtained_at'] ?? null,
+        ]);
+    }
+
+     public function me(WordPressTokenStore $store)
+    {
+        $cfg    = Config::get('services.wordpress');
+        $access = $store->getAccessToken();
+        if (!$access) return response()->json(['message' => 'Not authenticated'], 401);
+
+        $http = new Client(['http_errors' => false, 'base_uri' => rtrim($cfg['api_base_url'], '/') . '/']);
+        $r = $http->get(ltrim($cfg['api']['me'], '/'), ['headers' => ['Authorization' => 'Bearer '.$access]]);
+        return response($r->getBody(), $r->getStatusCode())->header('Content-Type','application/json');
     }
 }
