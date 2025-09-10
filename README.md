@@ -3,7 +3,7 @@
 A Laravel admin starter.
 
 > **Screens / UI / Requirements:**  
-> https://drive.google.com/drive/folders/1uT9BHMDA1i6n6xDjOAXxi_DnkJAf3Mu5?usp=sharing
+> https://drive.google.com/drive/folders/1uT9BHMDA1i6n6xDjOAXxi_DnkJAf3Mu5?usp=drive_link
 
 ---
 
